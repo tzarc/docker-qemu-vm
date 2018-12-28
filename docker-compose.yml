@@ -1,0 +1,36 @@
+version: '3.2'
+
+services:
+
+    qemu-test:
+        image: tzarc/docker-qemu-vm:latest
+        restart: on-failure
+        container_name: qemu_test
+        network_mode: host
+        cap_add:
+            - NET_ADMIN
+        environment:
+            - "QEMU_CPU=8"
+            - "QEMU_MEM=8G"
+            - "QEMU_BRIDGE=br0"
+            - "QEMU_DISKS=/root.qcow2|12G,/home.qcow2|12G"
+            - "QEMU_CDROM=/ubuntu-18.04.1.0-live-server-amd64.iso"
+            - "QEMU_MACADDR=00:aa:00:60:00:01"
+            - "QEMU_VNC=:0,websocket"
+            - "QEMU_EFI_NVRAM=/nvram"
+        devices:
+            - "/dev/kvm:/dev/kvm"
+            - "/dev/net/tun:/dev/net/tun"
+        volumes:
+            - type: bind
+              source: /home/tzarc/docker-qemu-vm/ubuntu-18.04.1.0-live-server-amd64.iso
+              target: /ubuntu-18.04.1.0-live-server-amd64.iso
+            - type: bind
+              source: /home/tzarc/docker-qemu-vm/root.qcow2
+              target: /root.qcow2
+            - type: bind
+              source: /home/tzarc/docker-qemu-vm/home.qcow2
+              target: /home.qcow2
+            - type: bind
+              source: /home/tzarc/docker-qemu-vm/nvram
+              target: /nvram

@@ -1,0 +1,125 @@
+#!/bin/bash
+set -e
+env | sort
+
+unset qemu_args
+declare -a qemu_args
+
+# Default set of args
+qemu_args+=("-enable-kvm")
+qemu_args+=("-cpu host")
+qemu_args+=("-smp $QEMU_CPU")
+qemu_args+=("-m $QEMU_MEM")
+qemu_args+=("-device virtio-balloon-pci,id=balloon0,deflate-on-oom=on")
+
+# Ensure there was a root filesystem specified
+if [ -z "$QEMU_DISKS" ] ; then
+    echo "No disks specified: \$QEMU_DISKS='$QEMU_DISKS'" >&2
+    exit 1
+fi
+
+# Work out the list of disks
+IFS=',' read -a disks <<< "$QEMU_DISKS"
+for disk in ${disks[@]}; do
+    # Work out the specifics for this disk
+    IFS='|' read -a diskinfo <<< "$disk"
+
+    # Ensure there was the correct number of items
+    if [ ${#diskinfo[@]} != 2 ] ; then
+        echo "Disk info didn't specify filename and size: \$disk='$disk'" >&2
+        exit 1
+    fi
+
+    # Get the filename and size
+    disk_file=${diskinfo[0]}
+    disk_size=${diskinfo[1]}
+
+    # Ensure that the disk image file exists
+    if [ ! -f "$disk_file" ] ; then
+        echo "Disk file not found: \$disk_file='$disk_file'" >&2
+        exit 1
+    fi
+
+    # Create the disk image if there's no data yet
+    if [ ! -s "$disk_file" ] ; then
+        qemu-img create -f qcow2 "$disk_file" "$disk_size"
+    fi
+
+    qemu_args+=("-drive file=$disk_file,format=qcow2,if=virtio")
+done
+
+# Create the EFI NVRAM if the file is empty
+if [ -n "$QEMU_EFI_NVRAM" ] ; then
+    # Ensure we have an NVRAM file to write vars to
+    if [ ! -f "$QEMU_EFI_NVRAM" ] ; then
+        echo "NVRAM file not found: \$QEMU_EFI_NVRAM='$QEMU_EFI_NVRAM'" >&2
+        exit 1
+    fi
+
+    # If the NVRAM file is empty, copy across the one from OVMF
+    if [ ! -s "$QEMU_EFI_NVRAM" ] ; then
+        dd if=/usr/share/OVMF/OVMF_VARS.fd of=$QEMU_EFI_NVRAM
+    fi
+
+    # Configure the args for EFI
+    qemu_args+=("-drive if=pflash,format=raw,readonly,file=/usr/share/OVMF/OVMF_CODE.fd")
+    qemu_args+=("-drive if=pflash,format=raw,file=$QEMU_EFI_NVRAM")
+fi
+
+# Ensure the CDROM file exists if specified
+if [ -n "$QEMU_CDROM" ] ; then
+    # Ensure the CDROM file exists
+    if [ ! -f "$QEMU_CDROM" ] ; then
+        echo "CDROM not found: \$QEMU_CDROM='$QEMU_CDROM'" >&2
+        exit 1
+    fi
+
+    # Configure the args for the CDROM
+    qemu_args+=("-cdrom $QEMU_CDROM")
+    qemu_args+=("-boot order=cd")
+fi
+
+# Set up VNC if specified
+if [ ! -z "$QEMU_VNC" ] ; then
+    qemu_args+=("-vnc $QEMU_VNC")
+fi
+
+# Set the MAC address if specified
+qemu_args+=("-netdev tap,id=net0,helper=/usr/lib/qemu/qemu-bridge-helper")
+if [ -z "$QEMU_MACADDR" ] ; then
+    qemu_args+=("-device virtio-net-pci,netdev=net0")
+else
+    qemu_args+=("-device virtio-net-pci,netdev=net0,mac=$QEMU_MACADDR")
+fi
+
+# Ensure there was a bridge specified
+if [ -z "$QEMU_BRIDGE" ] ; then
+    echo "No bridge interface specified: \$QEMU_BRIDGE='$QEMU_BRIDGE'" >&2
+    exit 1
+fi
+
+# Ensure the bridge exists
+if ! ifconfig "$QEMU_BRIDGE" >/dev/null 2>&1 ; then
+    echo "Bridge interface not found: \$QEMU_BRIDGE='$QEMU_BRIDGE'" >&2
+    exit 1
+fi
+
+# Make sure the bridge is usable by QEMU
+echo "allow $QEMU_BRIDGE" > /etc/qemu/bridge.conf
+chmod 0640 /etc/qemu/bridge.conf
+chown root:qemu /etc/qemu/bridge.conf
+
+# Run QEMU only if there was no command specified
+if [ -z "$1" ] ; then
+    # Print out the args, for debugging purposes
+    echo "QEMU args:"
+    for arg in "${qemu_args[@]}" ; do
+        echo "    $arg"
+    done
+
+    # Run QEMU
+    exec qemu-system-x86_64 ${qemu_args[*]}
+else
+    # Not going to run QEMU by default -- swap to whatever command was given
+    exec "$@"
+fi
