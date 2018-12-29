@@ -19,7 +19,7 @@ if [ -z "$QEMU_DISKS" ] ; then
 fi
 
 # Work out the list of disks
-IFS=',' read -a disks <<< "$QEMU_DISKS"
+IFS=';' read -a disks <<< "$QEMU_DISKS"
 for disk in ${disks[@]}; do
     # Work out the specifics for this disk
     IFS='|' read -a diskinfo <<< "$disk"

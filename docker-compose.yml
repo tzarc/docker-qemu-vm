@@ -13,7 +13,7 @@ services:
             - "QEMU_CPU=8"
             - "QEMU_MEM=8G"
             - "QEMU_BRIDGE=br0"
-            - "QEMU_DISKS=/root.qcow2|12G,/home.qcow2|12G"
+            - "QEMU_DISKS=/root.qcow2|12G;/home.qcow2|12G"
             - "QEMU_CDROM=/ubuntu-18.04.1.0-live-server-amd64.iso"
             - "QEMU_MACADDR=00:aa:00:60:00:01"
             - "QEMU_VNC=:0,websocket"
