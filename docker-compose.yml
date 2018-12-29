@@ -3,7 +3,7 @@ version: '3.2'
 services:
 
     qemu-test:
-        image: tzarc/docker-qemu-vm:latest
+        image: tzarc/qemu-vm:latest
         restart: on-failure
         container_name: qemu_test
         network_mode: host
