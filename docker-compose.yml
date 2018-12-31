@@ -18,6 +18,7 @@ services:
             - "QEMU_MACADDR=00:aa:00:60:00:01"
             - "QEMU_VNC=:0,websocket"
             - "QEMU_EFI_NVRAM=/nvram"
+            - "QEMU_QMP=:7000"
         devices:
             - "/dev/kvm:/dev/kvm"
             - "/dev/net/tun:/dev/net/tun"

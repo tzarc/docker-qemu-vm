@@ -11,6 +11,7 @@ qemu_args+=("-cpu host")
 qemu_args+=("-smp $QEMU_CPU")
 qemu_args+=("-m $QEMU_MEM")
 qemu_args+=("-device virtio-balloon-pci,id=balloon0,deflate-on-oom=on")
+qemu_args+=("-device qemu-xhci")
 
 # Ensure there was a root filesystem specified
 if [ -z "$QEMU_DISKS" ] ; then
@@ -90,6 +91,10 @@ if [ -z "$QEMU_MACADDR" ] ; then
     qemu_args+=("-device virtio-net-pci,netdev=net0")
 else
     qemu_args+=("-device virtio-net-pci,netdev=net0,mac=$QEMU_MACADDR")
+fi
+
+if [ -n "$QEMU_QMP" ] ; then
+    qemu_args+=("-qmp tcp:$QEMU_QMP,server,nowait")
 fi
 
 # Ensure there was a bridge specified
