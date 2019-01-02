@@ -18,6 +18,6 @@ COPY ./files/entrypoint /entrypoint
 COPY ./files/etc-service-qemu-run /etc/service/qemu/run
 COPY ./files/etc-service-websockify-run /etc/service/websockify/run
 
-RUN chmod 755 /etc/service/*/run
+RUN chmod 755 /entrypoint /etc/service/*/run
 
 ENTRYPOINT ["/bin/bash","/entrypoint"]
