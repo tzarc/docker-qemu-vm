@@ -6,7 +6,7 @@ exec 2>&1
 source /etc/envvars
 
 cat /novnc-noVNC/vnc_lite.html \
-    | sed -e "s#var path = WebUtil.getConfigVar('path', 'websockify');#var path = WebUtil.getConfigVar('path', window.location.pathname.split('/').join('/'));#g" \
+    | sed -e "s#var path = WebUtil.getConfigVar('path', 'websockify');#var path = WebUtil.getConfigVar('path', window.location.pathname.split('/').slice(1,-1).join('/'));#g" \
     > /novnc-noVNC/index.html
 
 exec /novnc-websockify/run --web /novnc-noVNC $((5800+$QEMU_VNC_IDX)) 127.0.0.1:$((5900+$QEMU_VNC_IDX))
