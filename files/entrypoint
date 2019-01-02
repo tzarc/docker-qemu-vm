@@ -1,0 +1,10 @@
+#!/bin/bash
+set -eEuo pipefail
+umask 022
+
+if [[ -z "${1:-}" ]] ; then
+    export > /etc/envvars
+    exec /sbin/runsvdir /etc/service
+else
+    exec "$@"
+fi

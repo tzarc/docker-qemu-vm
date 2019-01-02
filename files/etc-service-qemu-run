@@ -1,17 +1,23 @@
 #!/bin/bash
-set -e
-env | sort
+set -eEuo pipefail
+umask 022
+
+exec 2>&1
+source /etc/envvars
 
 unset qemu_args
 declare -a qemu_args
 
 # Default set of args
 qemu_args+=("-enable-kvm")
+qemu_args+=("-nodefaults")
+qemu_args+=("-device virtio-vga")
 qemu_args+=("-cpu host")
 qemu_args+=("-smp $QEMU_CPU")
 qemu_args+=("-m $QEMU_MEM")
 qemu_args+=("-device virtio-balloon-pci,id=balloon0,deflate-on-oom=on")
 qemu_args+=("-device qemu-xhci")
+qemu_args+=("-device usb-tablet")
 
 # Ensure there was a root filesystem specified
 if [ -z "$QEMU_DISKS" ] ; then
@@ -80,11 +86,6 @@ if [ -n "$QEMU_CDROM" ] ; then
     qemu_args+=("-boot order=cd")
 fi
 
-# Set up VNC if specified
-if [ ! -z "$QEMU_VNC" ] ; then
-    qemu_args+=("-vnc $QEMU_VNC")
-fi
-
 # Set the MAC address if specified
 qemu_args+=("-netdev tap,id=net0,helper=/usr/lib/qemu/qemu-bridge-helper")
 if [ -z "$QEMU_MACADDR" ] ; then
@@ -114,17 +115,14 @@ echo "allow $QEMU_BRIDGE" > /etc/qemu/bridge.conf
 chmod 0640 /etc/qemu/bridge.conf
 chown root:qemu /etc/qemu/bridge.conf
 
-# Run QEMU only if there was no command specified
-if [ -z "$1" ] ; then
-    # Print out the args, for debugging purposes
-    echo "QEMU args:"
-    for arg in "${qemu_args[@]}" ; do
-        echo "    $arg"
-    done
+# Set up VNC
+qemu_args+=("-vnc 127.0.0.1:${QEMU_VNC_IDX:-0}")
 
-    # Run QEMU
-    exec qemu-system-x86_64 ${qemu_args[*]}
-else
-    # Not going to run QEMU by default -- swap to whatever command was given
-    exec "$@"
-fi
+# Print out the args, for debugging purposes
+echo "QEMU args:"
+for arg in "${qemu_args[@]}" ; do
+    echo "    $arg"
+done
+
+# Run QEMU
+exec qemu-system-x86_64 ${qemu_args[*]}
