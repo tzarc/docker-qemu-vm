@@ -16,7 +16,7 @@ qemu_args+=("-cpu host")
 qemu_args+=("-smp ${QEMU_CPU:-1}")
 qemu_args+=("-m ${QEMU_MEM:-2G}")
 qemu_args+=("-device virtio-balloon-pci,id=balloon0,deflate-on-oom=on")
-qemu_args+=("-device qemu-xhci")
+qemu_args+=("-device nec-usb-xhci")
 qemu_args+=("-device usb-tablet")
 
 # Ensure there was a root filesystem specified
@@ -96,6 +96,10 @@ fi
 
 if [ -n "${QEMU_QMP:-}" ] ; then
     qemu_args+=("-qmp tcp:$QEMU_QMP,server,nowait")
+fi
+
+if [ -n "${QEMU_MONITOR:-}" ] ; then
+    qemu_args+=("-monitor telnet:$QEMU_MONITOR,server,nowait")
 fi
 
 # Ensure there was a bridge specified

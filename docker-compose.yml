@@ -19,6 +19,7 @@ services:
             - "QEMU_VNC_IDX=0"
             - "QEMU_EFI_NVRAM=/nvram"
             - "QEMU_QMP=:7000"
+            - "QEMU_MONITOR=:7100"
         devices:
             - "/dev/kvm:/dev/kvm"
             - "/dev/net/tun:/dev/net/tun"
