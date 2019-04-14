@@ -3,13 +3,12 @@ LABEL Maintainer="Nick Brassel <nick@tzarc.org>" \
       Description="Run a QEMU virtual machine inside a docker container."
 
 RUN apk update \
-    && apk --no-cache add bash qemu-system-x86_64 qemu-img ovmf runit curl python py2-numpy
+    && apk --no-cache add bash qemu-system-x86_64 qemu-img ovmf runit curl python py2-numpy shadow
 
-RUN addgroup qemu \
-    && adduser -h /home/qemu -s /bin/bash -G qemu -D qemu \
+RUN addgroup runner \
+    && adduser -h /home/runner -s /bin/bash -G runner -D runner \
     && echo 'qemu ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
-    && addgroup -g $(stat -c %g /dev/kvm) kvm \
-    && usermod -G kvm qemu
+    && usermod -G qemu,kvm runner
 
 RUN umask 022 \
     && mkdir -pm 755 /novnc-noVNC \
