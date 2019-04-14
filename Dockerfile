@@ -5,6 +5,12 @@ LABEL Maintainer="Nick Brassel <nick@tzarc.org>" \
 RUN apk update \
     && apk --no-cache add bash qemu-system-x86_64 qemu-img ovmf runit curl python py2-numpy
 
+RUN addgroup qemu \
+    && adduser -h /home/qemu -s /bin/bash -G qemu -D qemu \
+    && echo 'qemu ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
+    && addgroup -g $(stat -c %g /dev/kvm) kvm \
+    && usermod -G kvm qemu
+
 RUN umask 022 \
     && mkdir -pm 755 /novnc-noVNC \
     && mkdir -pm 755 /novnc-websockify \
