@@ -10,11 +10,11 @@ services:
         cap_add:
             - NET_ADMIN
         environment:
-            - "QEMU_CPU=2"
-            - "QEMU_MEM=1G"
+            - "QEMU_CPU=4"
+            - "QEMU_MEM=4G"
             - "QEMU_BRIDGE=br0"
             - "QEMU_DISKS=/root.qcow2|4G"
-            - "QEMU_CDROM=/alpine-standard-3.13.3-x86_64.iso"
+            - "QEMU_CDROM=/ubuntu-server-amd64.iso"
             - "QEMU_MACADDR=96:CC:C2:20:4A:B2"
             - "QEMU_VNC_IDX=0"
             - "QEMU_EFI_NVRAM=/nvram"
@@ -24,8 +24,8 @@ services:
             - "/dev/net/tun:/dev/net/tun"
         volumes:
             - type: bind
-              source: ./alpine-standard-3.13.3-x86_64.iso
-              target: /alpine-standard-3.13.3-x86_64.iso
+              source: ./ubuntu-server-amd64.iso
+              target: /ubuntu-server-amd64.iso
             - type: bind
               source: ./test-root.qcow2
               target: /root.qcow2
