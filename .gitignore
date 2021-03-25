@@ -1,1 +1,3 @@
-test-*
+test-root.qcow2
+test-nvram
+alpine-*
