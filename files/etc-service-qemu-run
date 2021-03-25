@@ -11,7 +11,7 @@ declare -a qemu_args
 # Default set of args
 qemu_args+=("-enable-kvm")
 qemu_args+=("-nodefaults")
-qemu_args+=("-device vmware-svga")
+qemu_args+=("-vga std")
 qemu_args+=("-cpu host")
 qemu_args+=("-smp ${QEMU_CPU:-1}")
 qemu_args+=("-m ${QEMU_MEM:-2G}")
